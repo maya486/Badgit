@@ -67,6 +67,7 @@ public:
   string get_string_rep();
   static Entry from_string_rep(string sr);
   variant<Tree, Blob> get_inner_obj();
+	string get_name() {return name;}
   // doesn't need a get_hash() or from_hash() because it isn't an actual badgit
   // object
 };
@@ -80,6 +81,7 @@ public:
   static Tree from_hash(string hash);
   string get_string_rep() override;
   string get_hash() override;
+	vector<Entry> get_entries() {return entries;}
 };
 
 class Commit : public BadgitObject {

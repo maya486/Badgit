@@ -34,9 +34,41 @@ Index::Index() {
   }
 }
 
+unordered_map<filesystem::path, string> tree_to_path_to_hash_map(Tree &t) {
+  unordered_map<filesystem::path, string> path_to_hash;
+
+  vector<Entry> entries = t.get_entries();
+  for (auto &entry : entries) {
+    auto obj = entry.get_inner_obj();
+    if (holds_alternative<Blob>(obj)) {
+      Blob b = get<Blob>(obj);
+      path_to_hash[filesystem::path{entry.get_name()}] = b.get_hash();
+    } else if (holds_alternative<Tree>(obj)) {
+      Tree child_tree = get<Tree>(obj);
+      auto child_path_to_hash = tree_to_path_to_hash_map(child_tree);
+      for (auto &[path, hash] : child_path_to_hash) {
+        path_to_hash[entry.get_name() / path] = hash;
+      }
+    }
+  }
+  return path_to_hash;
+}
+
+Index Index::from_commit_hash(string hash) {
+  // build paths from tree of commit
+  unordered_map<filesystem::path, FileState> file_map;
+  Commit c = Commit::from_hash(hash);
+  Tree t = c.get_tree();
+  auto path_to_hash = tree_to_path_to_hash_map(t);
+  for (auto &[path, hash] : path_to_hash) {
+    file_map[path] = FileState{hash, hash};
+  }
+  return Index(file_map);
+}
+
 void Index::add(vector<filesystem::path> paths) {
   for (auto &relative_path : paths) {
-		filesystem::path path = filesystem::absolute(relative_path);
+    filesystem::path path = filesystem::absolute(relative_path);
     string file_content = read_file_content_from_path(path);
     Blob file_blob = Blob(file_content);
     file_blob.write_object(); // write to objects dir
@@ -62,8 +94,8 @@ void Index::write() {
 }
 
 Tree Index::commit() {
-  // builds everything into a tree and returns this to VCS to make actual commit
-  // also updates Index file to have
+  // builds everything into a tree and returns this to VCS to make actual
+  // commit also updates Index file to have
   vector<pair<filesystem::path, string>> commit_files;
   for (auto &[path, file_state] : file_map) {
     // update Index to commit staged paths
@@ -105,5 +137,19 @@ CheckFileStatusResult Index::check_file_states(set<filesystem::path> wd_paths) {
   return cfsr;
 }
 
+vector<filesystem::path> Index::get_all_tracked_paths() {
+  vector<filesystem::path> paths;
+  for (auto &[path, file_state] : file_map) {
+    paths.push_back(path);
+  }
+  return paths;
+}
 
-
+void Index::bring_out_files() { // write out every path to hash as an actual
+                                // file in dir
+  for (auto &[path, file_state] : file_map) {
+    ofstream out_file(path);
+    Blob b = Blob::from_hash(file_state.repo_hash);
+    out_file << b.get_string_rep();
+  }
+}
