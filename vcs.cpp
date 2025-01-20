@@ -1,5 +1,4 @@
 #include "vcs.h"
-#include "utils.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -174,6 +173,22 @@ string VCS::log() {
     current_commit_hash = c.get_parent_commit_hash();
   }
   return log;
+}
+
+void delete_empty_dirs(const filesystem::path &dir) {
+
+  // Iterate through the directory
+  for (const auto &entry : filesystem::directory_iterator(dir)) {
+    if (filesystem::is_directory(entry)) {
+      // Recursively delete empty directories in subdirectories
+      delete_empty_dirs(entry.path());
+    }
+  }
+
+  // If the directory is empty, remove it
+  if (filesystem::is_directory(dir) && filesystem::is_empty(dir)) {
+    filesystem::remove(dir);
+  }
 }
 
 void VCS::add_branch(string branch_name) {

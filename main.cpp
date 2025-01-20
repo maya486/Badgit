@@ -35,6 +35,8 @@ int main(int argc, char *argv[]) {
       cout << vcs.checkout_commit(argv[2]);
     } else if (arg == "list-branches") {
       cout << vcs.list_branches();
+    } else {
+      cout << "Command not recognized";
     }
   }
   return 0;

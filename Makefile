@@ -1,4 +1,4 @@
-SOURCES = main.cpp vcs.cpp objects.cpp index.cpp utils.cpp # List of source files add more here
+SOURCES = main.cpp vcs.cpp objects.cpp index.cpp # List of source files add more here
 OBJECTS = $(SOURCES:.cpp=.o)  # Object files corresponding to source files
 TARGET = badgit # Output executable name
 
