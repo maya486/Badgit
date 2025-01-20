@@ -123,7 +123,8 @@ string VCS::status() {
   if (maybe_branch_name) {
     status = "On branch " + *maybe_branch_name + "\n\n" + status;
   } else {
-    status = "Detached head at commit: " + head.get_current_commit_hash() + "\n\n" + status;
+    status = "Detached head at commit: " + head.get_current_commit_hash() +
+             "\n\n" + status;
   }
 
   return status;
@@ -139,33 +140,34 @@ string VCS::log() {
     log = "Detached head\n";
   }
 
-	vector<pair<string, string>> branch_name_and_commit_hash;
+  vector<pair<string, string>> branch_name_and_commit_hash;
   for (auto branch_file : filesystem::directory_iterator(HEADS_DIR)) {
-		string branch_name =branch_file.path().filename() ;
-		Head temp_head = Head(true, branch_name);
-		string commit_hash = temp_head.get_current_commit_hash();
+    string branch_name = branch_file.path().filename();
+    Head temp_head = Head(true, branch_name);
+    string commit_hash = temp_head.get_current_commit_hash();
     branch_name_and_commit_hash.push_back({branch_name, commit_hash});
-	}
+  }
 
   string current_commit_hash = head.get_current_commit_hash();
   while (!current_commit_hash.empty()) {
     Commit c = Commit::from_hash(current_commit_hash);
 
-		string branch_info = "";
-		vector<string> branches_at_commit;
-		for (auto& [branch_name, branch_commit_hash] : branch_name_and_commit_hash) {
-			if (branch_commit_hash == current_commit_hash) {
-				branches_at_commit.push_back(branch_name);
-			}
-		}
-		if (!branches_at_commit.empty()) {
-			branch_info = " (";
-			for (string& branch_name : branches_at_commit) {
-				branch_info += branch_name + ", ";
-			}
-			branch_info = branch_info.substr(0, branch_info.length()-2);
-			branch_info += ")";
-		}
+    string branch_info = "";
+    vector<string> branches_at_commit;
+    for (auto &[branch_name, branch_commit_hash] :
+         branch_name_and_commit_hash) {
+      if (branch_commit_hash == current_commit_hash) {
+        branches_at_commit.push_back(branch_name);
+      }
+    }
+    if (!branches_at_commit.empty()) {
+      branch_info = " (";
+      for (string &branch_name : branches_at_commit) {
+        branch_info += branch_name + ", ";
+      }
+      branch_info = branch_info.substr(0, branch_info.length() - 2);
+      branch_info += ")";
+    }
 
     log += "commit " + current_commit_hash + branch_info + '\n';
     log += '\t' + c.get_message() + "\n\n";
