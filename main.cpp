@@ -1,3 +1,4 @@
+#include "help.h"
 #include "vcs.h"
 #include <filesystem>
 #include <fstream>
@@ -8,6 +9,12 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   VCS vcs = VCS();
+  if (!vcs.is_in_root_dir()) {
+    cout << "badgit error: only call badgit commands the root dir where badgit "
+            "init was invoked, not any other dir\n";
+    return 1;
+  }
+
   if (argc > 0) {
     string arg = argv[1];
     if (arg == "init") {
@@ -35,8 +42,10 @@ int main(int argc, char *argv[]) {
       cout << vcs.checkout_commit(argv[2]);
     } else if (arg == "list-branches") {
       cout << vcs.list_branches();
+    } else if (arg == "help") {
+      cout << HELP_STRING;
     } else {
-      cout << "Command not recognized";
+      cout << "Command not recognized. Use \"badgit help\" for more info.";
     }
   }
   return 0;

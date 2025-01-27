@@ -279,3 +279,8 @@ string VCS::checkout_commit(string hash) {
 
   return "Switched to commit " + hash + '\n';
 }
+
+bool VCS::is_in_root_dir() {
+  ifstream obj_file(INDEX_FILE.string());
+  return !!obj_file;
+}

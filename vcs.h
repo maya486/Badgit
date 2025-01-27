@@ -18,4 +18,5 @@ public:
   set<filesystem::path> collect_wd_paths();
   string list_branches();
   optional<string> remove_known_paths();
+  bool is_in_root_dir();
 };
